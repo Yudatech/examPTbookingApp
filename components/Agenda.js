@@ -1,7 +1,7 @@
 import React from 'react';
-import { Text, StyleSheet,View } from 'react-native';
-import { Agenda} from 'react-native-calendars';
-
+import {Text, StyleSheet, View} from 'react-native';
+import {Agenda} from 'react-native-calendars';
+import {data, firebase} from '../firebase/firebase';
 export class AgendaCp extends React.Component {
   constructor(props) {
     super(props);
@@ -10,51 +10,89 @@ export class AgendaCp extends React.Component {
     };
   }
   render() {
-    return (
-      <Agenda
+    return (<Agenda
       items={this.state.items}
-      loadItemsForMonth={this.loadItems.bind(this)}
-      selected={'2017-05-16'}
-      renderItem={this.renderItem.bind(this)}
-      renderEmptyDate={this.renderEmptyDate.bind(this)}
-      rowHasChanged={this.rowHasChanged.bind(this)}
-    />);
+      loadItemsForMonth={this
+      .loadItems
+      .bind(this)}
+      minDate={'2019-01-01'}
+      maxDate={'2019-01-30'}
+      pastScrollRange={0}
+      futureScrollRange={5}
+      renderItem={this
+      .renderItem
+      .bind(this)}
+      renderEmptyDate={this
+      .renderEmptyDate
+      .bind(this)}
+      rowHasChanged={this
+      .rowHasChanged
+      .bind(this)}/>);
+
+  
   }
-  loadItems(day) {
-    setTimeout(() => {
-      for (let i = -15; i < 85; i++) {
-        const time = day.timestamp + i * 24 * 60 * 60 * 1000;
-        const strTime = this.timeToString(time);
-        if (!this.state.items[strTime]) {
-          this.state.items[strTime] = [];
-          const numItems = Math.floor(Math.random() * 5);
-          for (let j = 0; j < numItems; j++) {
-            this.state.items[strTime].push({
-              name: 'Item for ' + strTime,
-              height: Math.max(50, Math.floor(Math.random() * 150))
+
+  async loadItems(day) {
+
+    let today = new Date().getTime();
+
+    for (let i = -15; i < 15; i++) {
+      const time = today + i * 24 * 60 * 60 * 1000;
+      const strTime = this.timeToString(time);
+      this.state.items[strTime] = [];
+    }
+
+    data
+      .collection('sessions')
+      .get()
+      .then((sessions) => {
+         sessions.docs.map((s) => {
+            let d = s.data();
+            this.state.items[this.timeToString(d.date.seconds*1000)].push({
+              name: d.name, 
+              text: d.text, 
+              timeSlot: d.timeSlot, 
+              height: 100});
+            return {date:d.date, name: d.name, text: d.text, timeSlot: d.timeSlot, height: 100}
+          });
+
+          const newItems = {};
+          Object
+            .keys(this.state.items)
+            .forEach(key => {
+              newItems[key] = this.state.items[key];
             });
-          }
-        }
-      }
-      //console.log(this.state.items);
-      const newItems = {};
-      Object.keys(this.state.items).forEach(key => {newItems[key] = this.state.items[key];});
-      this.setState({
-        items: newItems
+          this.setState({
+            items: newItems
+          });   
+
       });
-    }, 1000);
-    // console.log(`Load Items for ${day.year}-${day.month}`);
+
   }
+
+ 
 
   renderItem(item) {
     return (
-      <View style={[styles.item, {height: item.height}]}><Text>{item.name}</Text></View>
+      <View
+        style={[
+        styles.item, {
+          height: item.height
+        }
+      ]}>
+        <Text>{item.timeSlot}</Text>
+        <Text>{item.name}</Text>
+        <Text>{item.text}</Text>
+      </View>
+
     );
   }
 
   renderEmptyDate() {
     return (
-      <View style={styles.emptyDate}><Text>This is empty date!</Text></View>
+      <View style={styles.emptyDate}>
+        <Text>This is empty date!</Text>
+      </View>
     );
   }
 
@@ -64,7 +102,9 @@ export class AgendaCp extends React.Component {
 
   timeToString(time) {
     const date = new Date(time);
-    return date.toISOString().split('T')[0];
+    return date
+      .toISOString()
+      .split('T')[0];
   }
 }
 
@@ -79,7 +119,7 @@ const styles = StyleSheet.create({
   },
   emptyDate: {
     height: 15,
-    flex:1,
-    paddingTop: 30
+    flex: 1,
+    paddingTop: 30,
   }
 });

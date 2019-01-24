@@ -9,12 +9,13 @@ import {
   View,
 } from 'react-native';
 import { WebBrowser } from 'expo';
-
+import {inject, observer} from 'mobx-react';
 import { MonoText } from '../components/StyledText';
 import { CalendarCp} from '../components/Calendar';
 import { AgendaCp} from '../components/Agenda';
 
-export default class HomeScreen extends React.Component {
+@inject("userStore")
+@observer export default class HomeScreen extends React.Component {
   static navigationOptions = {
     header: null,
   };
@@ -23,8 +24,8 @@ export default class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <CalendarCp></CalendarCp> 
-        {/* <AgendaCp></AgendaCp>  */}
+        {/* <CalendarCp></CalendarCp>  */}
+         <AgendaCp></AgendaCp>  
         </ScrollView>
 
       </View>

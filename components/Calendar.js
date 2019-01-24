@@ -1,137 +1,77 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import {Calendar} from 'react-native-calendars';
+import {inject, observer} from 'mobx-react';
 
-export class CalendarCp extends React.Component {
+@inject("userStore")
+@observer export class CalendarCp extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      selected:{},
+      items:{},
+    };
     this.onDayPress = this.onDayPress.bind(this);
+    this.markedDates={ 
+      '2019-01-15': {  
+        disabled: true
+      },
+      '2019-01-16': {  
+        selected: true, marked: true, dotColor: 'green'
+      },
+      '2019-01-17': {  
+        periods: [  
+          { startingDay: false, endingDay: true, color: '#5f9ea0' },
+          { startingDay: false, endingDay: true, color: '#ffa500' },
+          { startingDay: true, endingDay: false, color: '#f0e68c' },
+        ]
+      },
+      '2019-01-18': {  
+        periods: [  
+          { startingDay: true, endingDay: true, color: '#ffa500' },
+          { color: 'transparent' },
+          { startingDay: false, endingDay: false, color: '#f0e68c' },
+        ]
+      }
+    
+    }
+        
+    
+  }
+
+  setToday(){
+    let d = new Date();
   }
 
   render() {
     return <Calendar
     style={styles.calendar}
+    onDayPress={this.onDayPress}
     onDayLongPress={this.onDayLongPress}
     hideExtraDays
-    current={'2018-03-01'}
+    current={()=>this.setToday()}
     minDate={'2018-03-01'}
     markingType={'custom'}
-    markedDates={{
-      '2018-03-01': {
-        customStyles: {
-          container: {
-            backgroundColor: 'white',
-            elevation: 2
-          },
-          text: {
-            color: 'blue',
-          },
-        }
-      },
-      '2018-03-08': {selected: true},
-      '2018-03-09': {
-        customStyles: {
-          container: {
-            backgroundColor: 'red',
-            elevation: 4,
-          },
-          text: {
-            color: 'white',
-          },
-        }
-      },
-      '2018-03-10': {disabled: true},
-      '2018-03-14': {
-        customStyles: {
-          container: {
-            backgroundColor: 'green',
-          },
-          text: {
-            color: 'white',
-          },
-        },
-      },
-      '2018-03-15': {
-        customStyles: {
-          container: {
-            backgroundColor: 'black',
-            elevation: 2
-          },
-          text: {
-            color: 'yellow',
-          },
-        }
-      },
-      '2018-03-20': {
-        customStyles: {
-          container: {
-            backgroundColor: 'pink',
-            elevation: 4,
-          },
-          text: {
-            color: 'blue',
-          },
-        }
-      },
-      '2018-03-21': {disabled: true},
-      '2018-03-28': {
-        customStyles: {
-          container: {
-            backgroundColor: 'green',
-          },
-          text: {
-            color: 'black',
-            fontWeight: 'bold'
-          },
-        },
-      },
-      '2018-03-29': {
-        customStyles: {
-          container: {
-            backgroundColor: 'white',
-            elevation: 2
-          },
-          text: {
-            color: 'blue',
-          },
-        }
-      },
-      '2018-03-30': {
-        customStyles: {
-          container: {
-            backgroundColor: 'violet',
-            elevation: 4,
-            borderColor: 'red',
-            borderWidth: 5,
-          },
-          text: {
-            marginTop: 3,
-            fontSize: 11,
-            color: 'yellow',
-          },
-        }
-      },
-      '2018-03-31': {
-        customStyles: {
-          container: {
-            backgroundColor: 'green',
-            borderRadius: 0,
-          },
-          text: {
-            color: 'white',
-          },
-        },
-      }}}
+    markedDates={this.markedDates}
     hideArrows={false}
   />;
+
   }
 
   onDayPress(day) {
+    this.props.userStore.setSelectedDate(day.dateString);
+    let selectedDate= this.props.userStore.selectedDate;
+    console.log("onDayPress",selectedDate);
+    let markSelected={selectedDate: {selected: true, marked: true, dotColor: 'yellow'}};
+    let marked= this.state.markedDates;
+    marked.push(markSelected);
     this.setState({
-      selected: day.dateString
+      selected: day.dateString, 
+      markedDates: marked
     });
   }
+
+
 }
 
 const styles = StyleSheet.create({

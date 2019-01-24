@@ -4,19 +4,19 @@ import { Provider} from 'mobx-react';
 import stores from './stores';
 import { AppLoading, Asset, Font, Icon } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
-import * as firebase from 'firebase';
+// import * as firebase from 'firebase';
 
-const firebaseConfig ={
-    apiKey: "AIzaSyARvPY6Ueaw-WJpl_BoU6cUrhtQlGyJ7U0",
-    authDomain: "personal-trainning-app-backend.firebaseapp.com",
-    databaseURL: "https://personal-trainning-app-backend.firebaseio.com",
-    projectId: "personal-trainning-app-backend",
-    storageBucket: "personal-trainning-app-backend.appspot.com",
-    messagingSenderId: "671866726229"
+// const firebaseConfig ={
+//     apiKey: "AIzaSyARvPY6Ueaw-WJpl_BoU6cUrhtQlGyJ7U0",
+//     authDomain: "personal-trainning-app-backend.firebaseapp.com",
+//     databaseURL: "https://personal-trainning-app-backend.firebaseio.com",
+//     projectId: "personal-trainning-app-backend",
+//     storageBucket: "personal-trainning-app-backend.appspot.com",
+//     messagingSenderId: "671866726229"
   
-};
+// };
 
-firebase.initializeApp(firebaseConfig);
+// firebase.initializeApp(firebaseConfig);
 
 export default class App extends React.Component {
   state = {

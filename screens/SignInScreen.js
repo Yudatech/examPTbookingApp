@@ -1,156 +1,249 @@
-import React,  { Component } from 'react';
+import React, {Component} from 'react';
+import {data, firebase} from '../firebase/firebase';
 
-import {
-  StyleSheet,
-  Image,
-  View,
-  Text,
-} from 'react-native';
+import {StyleSheet, Image, View, Text} from 'react-native';
 
-import { Button, Input, CheckBox} from 'react-native-elements';
+import {Button, Input, CheckBox} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
+import {inject, observer} from 'mobx-react';
 
-
-export default class SignInScreen extends React.Component{
-  constructor(props){
+@inject("userStore")
+@observer export default class SignInScreen extends React.Component {
+  constructor(props) {
     super(props);
 
     this.state = {
-      checked: false,
+      email: "",
+      password: "",
+      checked: false
     }
   }
 
-  checkLogin(){
-   this.props.navigation.navigate('Main');
-  //  firebase.database().ref('users/RWqwuYCTBYygEpl9bqdN' ).set({
-  //    email:"123@abc.com"
-  //  });
+  checkLogin() {
+    console.log("email,pass", this.state);
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(this.state.email, this.state.password)
+      .catch(function (error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // [START_EXCLUDE]
+        if (errorCode === 'auth/wrong-password') {
+          alert('Wrong password.');
+        } else {
+          alert("error message", errorMessage);
+        }
+        console.log(error);
+        // document.getElementById('quickstart-sign-in').disabled = false; [END_EXCLUDE]
+      });
+    //this.props.navigation.navigate('Main');
   }
 
-  render(){
+  render() {
     const {navigate} = this.props.navigation;
-    return(
+    return (
       <View style={styles.container}>
-      <Image source ={require('../assets/images/login-background.jpg')} style={styles.backgroundImage}/>
-      <View style={styles.forms}>
-      <Text style={styles.header1}>Login</Text>
-      <Input containerStyle={styles.inputs} inputStyle={{color:"white"}} placeholder='User Name' placeholderTextColor='#eee' leftIcon={<Icon
-      name='user'
-      size={24}
-      color='white'
-    />}></Input>
-    <Input secureTextEntry={true} containerStyle={styles.inputs}  inputStyle={{color:"white"}} placeholder='Password' placeholderTextColor='#eee' leftIcon={<Icon
-      name='lock'
-      size={24}
-      color='white'
-    />}></Input>
+        <Image
+          source
+          ={require('../assets/images/login-background.jpg')}
+          style={styles.backgroundImage}/>
+        <View style={styles.forms}>
+          <Text style={styles.header1}>Login</Text>
+          <Input
+            containerStyle={styles.inputs}
+            inputStyle={{
+            color: "white"
+          }}
+            placeholder='User Name'
+            placeholderTextColor='#eee'
+            leftIcon={< Icon name = 'user' size = {
+            24
+          }
+          color = 'white' />}
+            onChangeText={(email) => this.setState({email})}
+            value={this.state.email}/>
+          <Input
+            secureTextEntry={true}
+            containerStyle={styles.inputs}
+            inputStyle={{
+            color: "white"
+          }}
+            placeholder='Password'
+            placeholderTextColor='#eee'
+            leftIcon={< Icon name = 'lock' size = {
+            24
+          }
+          color = 'white' 
+           />}
+           onChangeText = {
+            (password) => this.setState({password})}
+            value={this.state.password}
+          
+          />
 
-      <CheckBox containerStyle={styles.checkbox}
+          {/* <CheckBox containerStyle={styles.checkbox}
       size={12}
       textStyle={styles.checkboxText}
       title='Remember me'
       checked={this.state.checked}
       onPress={()=>this.setState({checked: !this.state.checked})}
-      />
+      /> */}
 
-    
-    
-      <Button large containerStyle={{marginTop:0}} buttonStyle = {styles.login} icon={{name: 'envira', type: 'font-awesome', color:'white'}} titleStyle={{color: '#fff', fontWeight: 'bold',}} title='Login' onPress={()=>this.checkLogin()}/>
-      <Text style={
-        {marginTop:15,
-         textAlign:'center',
-         color: '#eee',
-         fontSize:20,
-        }
-      }>or</Text>
-       <Button large containerStyle={{marginTop:20}} buttonStyle = {styles.facebook} icon={{name: 'facebook-f', type: 'font-awesome', color: 'white'}} title='Facebook' titleStyle={{color: '#fff', fontWeight: 'bold',}}/>
-       <Button large containerStyle={{marginTop:20}} buttonStyle = {styles.twitter} icon={{name: 'twitter', type: 'font-awesome', color: 'white'}} title='Twitter' titleStyle={{color: '#fff', fontWeight: 'bold',}}/>
-       <Button large containerStyle={{marginTop:20}} buttonStyle = {styles.google} icon={{name: 'google-plus', type: 'font-awesome', color: 'white'}} title='Google' titleStyle={{color: '#fff', fontWeight: 'bold',}}/>
-       <Text style={
-         {
-           marginLeft: 18,
-           color:'#f4b831',
-           marginTop: 8,
-           textDecorationLine:'underline',
-         }
-       }
-       onPress={()=>navigate('SignUp')}
-       >Sign up</Text>
-      </View>
-      
+          <Button
+            large
+            containerStyle={{
+            marginTop: 0
+          }}
+            buttonStyle={styles.login}
+            icon={{
+            name: 'envira',
+            type: 'font-awesome',
+            color: 'white'
+          }}
+            titleStyle={{
+            color: '#fff',
+            fontWeight: 'bold'
+          }}
+            title='Login'
+            onPress={() => this.checkLogin()}/>
+          <Text
+            style={{
+            marginTop: 15,
+            textAlign: 'center',
+            color: '#eee',
+            fontSize: 20
+          }}>or</Text>
+          <Button
+            large
+            containerStyle={{
+            marginTop: 20
+          }}
+            buttonStyle={styles.facebook}
+            icon={{
+            name: 'facebook-f',
+            type: 'font-awesome',
+            color: 'white'
+          }}
+            title='Facebook'
+            titleStyle={{
+            color: '#fff',
+            fontWeight: 'bold'
+          }}/>
+          <Button
+            large
+            containerStyle={{
+            marginTop: 20
+          }}
+            buttonStyle={styles.twitter}
+            icon={{
+            name: 'twitter',
+            type: 'font-awesome',
+            color: 'white'
+          }}
+            title='Twitter'
+            titleStyle={{
+            color: '#fff',
+            fontWeight: 'bold'
+          }}/>
+          <Button
+            large
+            containerStyle={{
+            marginTop: 20
+          }}
+            buttonStyle={styles.google}
+            icon={{
+            name: 'google-plus',
+            type: 'font-awesome',
+            color: 'white'
+          }}
+            title='Google'
+            titleStyle={{
+            color: '#fff',
+            fontWeight: 'bold'
+          }}/>
+          <Text
+            style={{
+            marginLeft: 18,
+            color: '#f4b831',
+            marginTop: 8,
+            textDecorationLine: 'underline'
+          }}
+            onPress={() => navigate('SignUp')}>Sign up</Text>
+        </View>
+
       </View>
     )
   }
 
-  
 }
 
 const styles = StyleSheet.create({
-  container:{
+  container: {
     flex: 1,
     backgroundColor: '#a8aaad',
-    color: '#eee',
+    color: '#eee'
   },
-  backgroundImage:{
-    flex:1,
+  backgroundImage: {
+    flex: 1,
     resizeMode: 'cover',
     position: 'absolute',
-    width:'100%',
-    height:'100%',
-    justifyContent:'center',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center'
   },
-  forms:{
+  forms: {
     justifyContent: 'center',
-    color:'#eee',
-    width:'70%',
+    color: '#eee',
+    width: '70%',
     height: '70%',
-    top:'10%',
+    top: '10%',
     backgroundColor: 'rgba(10, 10, 10, 0.5)',
-    marginLeft :'15%',
+    marginLeft: '15%'
   },
-  header1:{
+  header1: {
     color: '#eee',
     fontSize: 30,
     marginBottom: 20,
-    textAlign:'center',
-    fontWeight: 'bold',
+    textAlign: 'center',
+    fontWeight: 'bold'
   },
-  inputs:{
+  inputs: {
     padding: '5%',
-    width: '90%',
+    width: '90%'
   },
-  checkbox:{
+  checkbox: {
     backgroundColor: "rgba(0,0,0,0)",
     borderColor: "rgba(0,0,0,0)",
-    marginTop:0,  
+    marginTop: 0
   },
-  checkboxText:{
+  checkboxText: {
     color: "#eee",
-    fontSize: 12,
+    fontSize: 12
   },
-  login:{
-    backgroundColor:'#f4b831',
+  login: {
+    backgroundColor: '#f4b831',
     width: '90%',
-    marginLeft:'5%',
-    marginTop:0,
+    marginLeft: '5%',
+    marginTop: 0
   },
-  facebook:{
-    backgroundColor:'#3b5998',
+  facebook: {
+    backgroundColor: '#3b5998',
     width: '90%',
-    marginLeft:'5%',
-    marginTop:0,
+    marginLeft: '5%',
+    marginTop: 0
   },
-  google:{
+  google: {
     backgroundColor: '#DA4735',
     width: '90%',
-    marginLeft:'5%',
-    marginTop:0,
+    marginLeft: '5%',
+    marginTop: 0
   },
-  twitter:{
+  twitter: {
     backgroundColor: '#28A9E0',
     width: '90%',
-    marginLeft:'5%',
-    marginTop:0,
+    marginLeft: '5%',
+    marginTop: 0
   }
 })
