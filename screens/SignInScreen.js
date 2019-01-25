@@ -14,17 +14,51 @@ import {inject, observer} from 'mobx-react';
     super(props);
 
     this.state = {
-      email: "",
-      password: "",
+      email: "123@abc.com",
+      password: "123456",
       checked: false
     }
   }
+  
 
   checkLogin() {
-    console.log("email,pass", this.state);
-    firebase
+    const {email, password} = this.state;
+    if(email && password){
+
+      // let spotSnapshots = await data.collection('spots').where("type", "==", type).orderBy("created", "desc").get();
+      // return spotSnapshots.docs;
+
+      firebase
       .auth()
-      .signInWithEmailAndPassword(this.state.email, this.state.password)
+      .signInWithEmailAndPassword(email, password).then(()=>{
+       let u = firebase.auth().currentUser;
+       let uid = u.uid;
+       data.collection('users').where("email", "==", email).get().then((snapshots)=>{
+          let loginUser = snapshots.docs[0].data();
+          loginUser.id= uid;
+          this.props.userStore.setLoginUser(loginUser);
+
+          let ref = data.collection('users').doc(loginUser.id);
+
+          if(this.props.userStore.loginUser.role === "PT"){
+            data.collection('sessions').where("inviter", "==", ref).get().then((sessions)=>{
+              //console.log(session.docs[0].data());
+
+              this.props.userStore.setAgenda(sessions);
+              this.props.navigation.navigate('Main');
+            });
+          }else{
+            data.collection('sessions').where("invitee", "==", ref).get().then((sessions)=>{
+              //console.log(session.docs[0].data());
+              this.props.userStore.setAgenda(sessions);
+              this.props.navigation.navigate('Main');
+            });
+          }
+          
+        });
+       
+        
+      })
       .catch(function (error) {
         // Handle Errors here.
         var errorCode = error.code;
@@ -32,13 +66,17 @@ import {inject, observer} from 'mobx-react';
         // [START_EXCLUDE]
         if (errorCode === 'auth/wrong-password') {
           alert('Wrong password.');
+          return;
         } else {
-          alert("error message", errorMessage);
+          alert( errorMessage);
+          return;
         }
-        console.log(error);
-        // document.getElementById('quickstart-sign-in').disabled = false; [END_EXCLUDE]
+        
       });
-    //this.props.navigation.navigate('Main');
+    }
+    
+    
+    
   }
 
   render() {
@@ -80,7 +118,6 @@ import {inject, observer} from 'mobx-react';
            onChangeText = {
             (password) => this.setState({password})}
             value={this.state.password}
-          
           />
 
           {/* <CheckBox containerStyle={styles.checkbox}

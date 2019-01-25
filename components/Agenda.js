@@ -2,7 +2,10 @@ import React from 'react';
 import {Text, StyleSheet, View} from 'react-native';
 import {Agenda} from 'react-native-calendars';
 import {data, firebase} from '../firebase/firebase';
-export class AgendaCp extends React.Component {
+import {inject, observer} from 'mobx-react';
+
+@inject("userStore")
+@observer export class AgendaCp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -10,7 +13,8 @@ export class AgendaCp extends React.Component {
     };
   }
   render() {
-    return (<Agenda
+    return (
+      <Agenda
       items={this.state.items}
       loadItemsForMonth={this
       .loadItems
@@ -27,9 +31,8 @@ export class AgendaCp extends React.Component {
       .bind(this)}
       rowHasChanged={this
       .rowHasChanged
-      .bind(this)}/>);
-
-  
+      .bind(this)}/>
+     );
   }
 
   async loadItems(day) {
@@ -42,16 +45,14 @@ export class AgendaCp extends React.Component {
       this.state.items[strTime] = [];
     }
 
-    data
-      .collection('sessions')
-      .get()
-      .then((sessions) => {
-         sessions.docs.map((s) => {
+    
+         this.props.userStore.agenda.docs.map((s) => {
             let d = s.data();
-            this.state.items[this.timeToString(d.date.seconds*1000)].push({
+            const trd= this.timeToString(d.date.seconds*1000);
+            this.state.items[trd].push({
               name: d.name, 
               text: d.text, 
-              timeSlot: d.timeSlot, 
+              timeSlot: d.startTime + " - " + d.finishTime, 
               height: 100});
             return {date:d.date, name: d.name, text: d.text, timeSlot: d.timeSlot, height: 100}
           });
@@ -66,11 +67,9 @@ export class AgendaCp extends React.Component {
             items: newItems
           });   
 
-      });
 
   }
 
- 
 
   renderItem(item) {
     return (
@@ -81,8 +80,8 @@ export class AgendaCp extends React.Component {
         }
       ]}>
         <Text>{item.timeSlot}</Text>
-        <Text>{item.name}</Text>
-        <Text>{item.text}</Text>
+        <Text>{item.name || ""}</Text>
+        <Text>{item.text || ""}</Text>
       </View>
 
     );

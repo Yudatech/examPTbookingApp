@@ -13,9 +13,25 @@ import {inject, observer} from 'mobx-react';
 import { MonoText } from '../components/StyledText';
 import { CalendarCp} from '../components/Calendar';
 import { AgendaCp} from '../components/Agenda';
+import { AddSession} from '../components/AddSession';
+import { FloatingAction } from 'react-native-floating-action';
+
+
+const actions = [{
+  color: "#32a1e1",
+  icon: require('../assets/images/dumbbell.png'),
+  text: 'Add Session',
+  name: 'add_session',
+  position: 1,
+  }
+];
 
 @inject("userStore")
 @observer export default class HomeScreen extends React.Component {
+  constructor(props){
+    super(props);
+  }
+  
   static navigationOptions = {
     header: null,
   };
@@ -23,11 +39,32 @@ import { AgendaCp} from '../components/Agenda';
   render() {
     return (
       <View style={styles.container}>
+      
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         {/* <CalendarCp></CalendarCp>  */}
-         <AgendaCp></AgendaCp>  
+        {/* <AddSession></AddSession> */}
+        {/* <AgendaCp></AgendaCp>  */}
+        {this.props.userStore.addSessionModalOpen ?
+          <AddSession></AddSession>
+          :
+          <AgendaCp></AgendaCp> 
+        }
+           
+         
         </ScrollView>
-
+        <FloatingAction
+        color ="#32a1e1"
+        actions={actions}
+        visible={this.props.userStore.floatBtnVisiable}
+        onPressItem={
+          (name) => {
+            if(name==="add_session"){
+              this.props.userStore.openAddSessionModal();
+            }
+            
+          }
+        }
+      />
       </View>
     );
   }
@@ -153,4 +190,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#2e78b7',
   },
+  
 });
