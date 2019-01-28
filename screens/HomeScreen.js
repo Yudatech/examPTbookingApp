@@ -41,9 +41,7 @@ const actions = [{
       <View style={styles.container}>
       
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* <CalendarCp></CalendarCp>  */}
-        {/* <AddSession></AddSession> */}
-        {/* <AgendaCp></AgendaCp>  */}
+       
         {this.props.userStore.addSessionModalOpen ?
           <AddSession></AddSession>
           :
@@ -52,6 +50,7 @@ const actions = [{
            
          
         </ScrollView>
+        {this.props.userStore.loginUser.role === "PT" ? 
         <FloatingAction
         color ="#32a1e1"
         actions={actions}
@@ -65,6 +64,10 @@ const actions = [{
           }
         }
       />
+      :
+      <Text></Text>
+        }
+        
       </View>
     );
   }

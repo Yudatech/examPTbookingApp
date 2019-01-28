@@ -1,10 +1,11 @@
 import React from 'react';
-import {Text, StyleSheet, View, Image} from 'react-native';
+import {Text, StyleSheet, View, Image, TouchableOpacity} from 'react-native';
 import {Button, Input, withTheme} from 'react-native-elements';
 import DatePicker from 'react-native-datepicker'
 import Autocomplete from 'react-native-autocomplete-input';
 import {inject, observer} from 'mobx-react';
 import {data, firebase} from '../firebase/firebase';
+
 
 
 const styles = StyleSheet.create({
@@ -60,11 +61,20 @@ const styles = StyleSheet.create({
     marginLeft:25,
   },
   autocompleteContainer:{
+    marginTop:20,
     marginLeft:20,
     width:'85%',
   },
   autoCompletePlaceholder:{
-    marginLeft:10
+    marginLeft:10,
+  },
+  autoCompleteText:{
+    padding:5
+  },
+  touchableOpacity:{
+    padding:0,
+    backgroundColor: "#eee",
+    color:"#333",
   },
   confirmBtn: {
     backgroundColor: '#f4b831',
@@ -98,45 +108,103 @@ const styles = StyleSheet.create({
   componentDidMount() {
     data.collection('users').get().then((snapshots)=>{
       let userList = snapshots.docs;
-      
       userList.map((user)=> {
         const n = user.data().username;
         const uid = user.ref.id;
         const currentId= this.props.userStore.loginUser.id;
        
         if(uid!== currentId && n){
-          this.state.clients[n]=uid;
+          this.state.clients.push({
+            name: n,
+            id: uid
+          });
         }
        
       }
       )
-
-      // const newClients = {};
-      // Object
-      //   .keys(this.state.clients)
-      //   .forEach(key => {
-      //     newClients[key] = this.state.clients[key];
-      //   });
-      // this.setState({
-      //   clients: newClients
-      // }, console.log("clients",this.setState.clients));   
+ 
     })
   }
 
+  timeToString(time) {
+    const date = new Date(time);
+    return date
+      .toISOString()
+      .split('T')[0];
+  }
+
   handleConfirm(){
-    if(!this.state.startTime ){
-      alert("Don't forget to set time!")
-    }else{
-      console.log(this.state)
-      this.props.userStore.closeAddSessionModal();
+    const {startTime, finishTime, invitee, events, query} = this.state;
+    const loginUid= firebase.auth().currentUser.uid;
+    
+    const d = Date.parse(finishTime);
+    const start = startTime.split(" ");
+    const starttime = start[1];
+    const finish = finishTime.split(" ");
+    const finishtime = finish[1];
+    const sessionDate= finish[0];
+    const newEvent = {
+        invitee: data.collection('users').doc(invitee),
+        inviter: data.collection('users').doc(loginUid),
+        events: events,
+        date: sessionDate,
+        createDate: new Date(),
+        name: query,
+        startTime: starttime,
+        finishTime: finishtime,
+      }
+    
+
+    if(events){
+      if(!startTime ){
+        alert("Don't forget to set time!");
+      }else{
+        
+        if(Date.parse(startTime)> Date.parse(finishTime)){
+          alert("Please check your time!");
+        }else{
+          //save events into database
+          
+          data.collection('sessions').add(newEvent).then(()=>{
+            //push events into agendaItem in UserStore
+                 
+            const key = this.timeToString(d);
+            const item = {
+              name: query,
+              events: events,
+              timeSlot: starttime + "-" + finishtime,
+              height: 70
+            }
+            this.props.userStore.addAgendaItem(key, item);
+
+            this.props.userStore.closeAddSessionModal();
+          });
+          
+        }
+        
+      }
     }
+    
     
   }
 
- 
+  findClient(query) {
+    if (query === '') {
+      return [];
+    }
+
+    const { clients } = this.state;
+    const regex = new RegExp(`${query.trim()}`, 'i');
+    return clients.filter(client => client.name.search(regex) >= 0);
+  }
 
 
   render(){
+
+    const { query } = this.state;
+    const clients = this.findClient(query);
+    const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
+
     return (
       <View style={styles.container}>
       <Image
@@ -146,37 +214,26 @@ const styles = StyleSheet.create({
             <View style={styles.forms}> 
            <Text style={styles.header2}>Add Events</Text>
 
-           {/* <Autocomplete
+           <Autocomplete
           autoCapitalize="none"
           autoCorrect={false}
           containerStyle={styles.autocompleteContainer}
           placeholder= "Select a client"
           inputContainerStyle={styles.autoCompletePlaceholder}
           placeholderTextColor='#888'
-          data = {this.state.clients}
-          // //data={films.length === 1 && comp(query, films[0].title) ? [] : films}
-          // defaultValue={query}
-          // onChangeText={text => this.setState({ query: text })}
-          // placeholder="Enter Star Wars film title"
-          renderItem={({ name }) => (
-            <TouchableOpacity onPress={() => this.setState({ query: name })}>
-              <Text >
+          data = {clients.length === 1 && comp(query, clients[0].name) ? [] : clients}
+          defaultValue={query}
+          onChangeText={(text) => this.setState({ query: text })
+          }
+          renderItem={({name, id}) => (
+            <TouchableOpacity style={styles.touchableOpacity} onPress={() => this.setState({ query: name, invitee: id })}>
+              <Text style={styles.autoCompleteText}>
                 {name}
               </Text>
             </TouchableOpacity>
          )}
-        /> */}
-          <Input className="client"
-          containerStyle={styles.inputs}
-          type="text"
-          modifer="material"
-          placeholder="Client Name"
-          placeholderTextColor="#eee"
-          inputStyle={{
-            color: 'white'
-          }}
-          onChangeText={(name)=>this.setState({invitee: this.state.clients[name] })}
         />
+         
 
         <Input className="events"
           containerStyle={styles.inputs}

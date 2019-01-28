@@ -1,7 +1,6 @@
 import React from 'react';
 import {Text, StyleSheet, View} from 'react-native';
 import {Agenda} from 'react-native-calendars';
-import {data, firebase} from '../firebase/firebase';
 import {inject, observer} from 'mobx-react';
 
 @inject("userStore")
@@ -15,12 +14,12 @@ import {inject, observer} from 'mobx-react';
   render() {
     return (
       <Agenda
-      items={this.state.items}
+      items={this.props.userStore.agendaItem}
       loadItemsForMonth={this
       .loadItems
       .bind(this)}
-      minDate={'2019-01-01'}
-      maxDate={'2019-01-30'}
+      minDate={'2018-12-01'}
+      maxDate={'2019-06-30'}
       pastScrollRange={0}
       futureScrollRange={5}
       renderItem={this
@@ -35,39 +34,12 @@ import {inject, observer} from 'mobx-react';
      );
   }
 
-  async loadItems(day) {
-
-    let today = new Date().getTime();
-
-    for (let i = -15; i < 15; i++) {
-      const time = today + i * 24 * 60 * 60 * 1000;
-      const strTime = this.timeToString(time);
-      this.state.items[strTime] = [];
+  async loadItems() {
+    if(!this.props.userStore.needLoadItem){
+      return;
     }
-
-    
-         this.props.userStore.agenda.docs.map((s) => {
-            let d = s.data();
-            const trd= this.timeToString(d.date.seconds*1000);
-            this.state.items[trd].push({
-              name: d.name, 
-              text: d.text, 
-              timeSlot: d.startTime + " - " + d.finishTime, 
-              height: 100});
-            return {date:d.date, name: d.name, text: d.text, timeSlot: d.timeSlot, height: 100}
-          });
-
-          const newItems = {};
-          Object
-            .keys(this.state.items)
-            .forEach(key => {
-              newItems[key] = this.state.items[key];
-            });
-          this.setState({
-            items: newItems
-          });   
-
-
+    this.props.userStore.setAgendaItem();  
+    this.props.userStore.noNeedLoading();
   }
 
 
@@ -80,8 +52,15 @@ import {inject, observer} from 'mobx-react';
         }
       ]}>
         <Text>{item.timeSlot}</Text>
+        {this.props.userStore.loginUser.role === "PT"
+        ?
         <Text>{item.name || ""}</Text>
-        <Text>{item.text || ""}</Text>
+        :
+        <Text></Text>
+
+      }
+        
+        <Text>{item.events || ""}</Text>
       </View>
 
     );
@@ -99,12 +78,7 @@ import {inject, observer} from 'mobx-react';
     return r1.name !== r2.name;
   }
 
-  timeToString(time) {
-    const date = new Date(time);
-    return date
-      .toISOString()
-      .split('T')[0];
-  }
+ 
 }
 
 const styles = StyleSheet.create({

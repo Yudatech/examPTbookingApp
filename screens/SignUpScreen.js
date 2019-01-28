@@ -1,4 +1,5 @@
-import React,  { Component } from 'react';
+import React from 'react';
+import {data, firebase} from '../firebase/firebase';
 
 import {
   StyleSheet,
@@ -15,7 +16,48 @@ export default class SignUpScreen extends React.Component{
     super(props);
 
     this.state = {
-      checked: false,
+      email:"",
+      password:"",
+      rePassword:"",
+      username:"",
+      checked:false,
+    }
+  }
+
+  handelSignUp(){
+    const {email, password, rePassword, checked, username} = this.state;
+    if(email && password){
+      if(password !== rePassword){
+        alert("Please check your password!")
+      }else if(!checked){
+        alert("Please agree terms and privacy policy!")
+      }else{
+        // sign up with firebase
+        firebase.auth().createUserWithEmailAndPassword(email, password).then(()=>{
+          this.props.navigation.navigate('Main');
+        }
+        ).catch(function(error) {
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          if(errorCode){
+            alert(errorCode);
+            return;
+          }else{
+            alert(errorMessage);
+            return;
+          }
+        });
+
+        //save user into database
+        data.collection('users').add({
+          email:email,
+          username: username,
+          role: 'client'
+        })
+
+        
+      }
     }
   }
 
@@ -30,22 +72,38 @@ export default class SignUpScreen extends React.Component{
       name='envelope'
       size={24}
       color='white'
-    />}></Input>
+    />}
+    onChangeText={(email) => this.setState({email})}
+    value={this.state.email}
+    />
       <Input containerStyle={styles.inputs} inputStyle={{color:"white"}} placeholder='User Name' placeholderTextColor='#eee' leftIcon={<Icon
       name='user'
       size={24}
       color='white'
-    />}></Input>
+    />}
+    onChangeText={(username) => this.setState({username})}
+    value={this.state.username}
+    />
     <Input containerStyle={styles.inputs} secureTextEntry={true} inputStyle={{color:"white"}} placeholder='Password' placeholderTextColor='#eee' leftIcon={<Icon
       name='lock'
       size={24}
       color='white'
-    />}></Input>
+    />}
+    onChangeText = {
+      (password) => this.setState({password})}
+      value={this.state.password}
+    
+    />
     <Input containerStyle={styles.inputs} secureTextEntry={true} inputStyle={{color:"white"}} placeholder='Repeat Password' placeholderTextColor='#eee' leftIcon={<Icon
       name='lock'
       size={24}
       color='white'
-    />}></Input>
+    />}
+
+    onChangeText = {
+      (rePassword) => this.setState({rePassword})}
+      value={this.state.rePassword}
+    />
 
       <CheckBox containerStyle={styles.checkbox}
       textStyle={styles.checkboxText}
@@ -85,7 +143,15 @@ export default class SignUpScreen extends React.Component{
 
     
     
-      <Button large containerStyle={{marginTop:0}} buttonStyle = {styles.login} icon={{name: 'envira', type: 'font-awesome', color:'white'}} titleStyle={{color: '#fff', fontWeight: 'bold',}} title='Sign Up'/>
+      <Button 
+      large 
+      containerStyle={{marginTop:0}} 
+      buttonStyle = {styles.login} 
+      icon={{name: 'envira', type: 'font-awesome', color:'white'}} 
+      titleStyle={{color: '#fff', fontWeight: 'bold',}} 
+      title='Sign Up'
+      onPress={()=>this.handelSignUp()}
+      />
       <Text style={
          {
            marginLeft: 20,

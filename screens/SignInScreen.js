@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {data, firebase} from '../firebase/firebase';
 
 import {StyleSheet, Image, View, Text} from 'react-native';
@@ -16,7 +16,7 @@ import {inject, observer} from 'mobx-react';
     this.state = {
       email: "123@abc.com",
       password: "123456",
-      checked: false
+      checked:false,
     }
   }
   
@@ -24,9 +24,6 @@ import {inject, observer} from 'mobx-react';
   checkLogin() {
     const {email, password} = this.state;
     if(email && password){
-
-      // let spotSnapshots = await data.collection('spots').where("type", "==", type).orderBy("created", "desc").get();
-      // return spotSnapshots.docs;
 
       firebase
       .auth()
@@ -39,19 +36,21 @@ import {inject, observer} from 'mobx-react';
           this.props.userStore.setLoginUser(loginUser);
 
           let ref = data.collection('users').doc(loginUser.id);
+          this.props.userStore.setLoginUserRef(ref);
 
           if(this.props.userStore.loginUser.role === "PT"){
-            data.collection('sessions').where("inviter", "==", ref).get().then((sessions)=>{
-              //console.log(session.docs[0].data());
-
-              this.props.userStore.setAgenda(sessions);
+            this.props.userStore.setAgenda("inviter").then(()=>{
               this.props.navigation.navigate('Main');
-            });
+            }); 
+           
+        
           }else{
             data.collection('sessions').where("invitee", "==", ref).get().then((sessions)=>{
-              //console.log(session.docs[0].data());
-              this.props.userStore.setAgenda(sessions);
-              this.props.navigation.navigate('Main');
+              this.props.userStore.setAgenda("invitee").then(()=>{
+                this.props.navigation.navigate('Main');
+              });
+              // this.props.userStore.setAgenda(sessions);
+              // this.props.navigation.navigate('Main');
             });
           }
           
